@@ -1,15 +1,35 @@
 <?php
+session_start();
+
+// Proteksi: Cek apakah user sudah login
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Koneksi ke database
 $conn = new mysqli('localhost', 'root', '', 'crud_db');
 
-$id = $_GET['id'];
+// Cek koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
-$stmt = $conn->prepare("DELETE FROM news WHERE id = ?");
-$stmt->bind_param("i", $id);
+// Mendapatkan ID berita
+$id = isset($_GET['id']) ? $_GET['id'] : null;
 
-if ($stmt->execute()) {
-    header("Location: index.php");
-    exit();
+if ($id) {
+    $stmt = $conn->prepare("DELETE FROM berita WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        header("Location: index.php?success=1");
+    } else {
+        header("Location: index.php?error=1");
+    }
+
+    $stmt->close();
 } else {
-    echo "Error: " . $stmt->error;
+    header("Location: index.php");
 }
 ?>
